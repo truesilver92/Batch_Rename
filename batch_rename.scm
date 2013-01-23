@@ -1,9 +1,10 @@
 #!/usr/local/bin/guile \
 -e main -s
 !#
-(use-modules (ice-9 getopt-long))
+(use-modules (ice-9 getopt-long)
+	     (ice-9 ftw))
 
-(define help_display "\
+(define help-display "\
 
 batch_rename [options]
   -h, --help Display this help
@@ -12,20 +13,22 @@ batch_rename [options]
 
 ")
 
+(define alist (list))
+
 (define (main args)
-  (define option-spec
-    '((function (single-char #\f) (value optional))
-      (directory (single-char #\d) (value optional))
-      (help (single-char #\h) (value #f))))
-  (define options (getopt-long args option-spec))
-  (define function-code (option-ref options 'function #f))
-  (define directory-name (option-ref options 'directory #f))
-  (define help-wanted (option-ref options 'help #f))
-  (if help-wanted
-      (display help_display))
-  (write "function-code: ")
-  (write function-code)
-  (newline)
-  (write "directory-name: ")
-  (write directory-name)
-  (newline))
+  (let*
+      ((option-spec
+	'((function (single-char #\f) (value optional))
+	  (directory (single-char #\d) (value optional))
+	  (help (single-char #\h) (value #f))))
+       (options (getopt-long args option-spec))
+       (function-code (option-ref options 'function #f))
+       (directory-name (option-ref options 'directory #f))
+       (help-wanted (option-ref options 'help #f)))
+       (if help-wanted
+	   (display help-display)
+	   (begin
+	     ;; get all the files out of the directory excluding the current folder and the parent folder
+	     (set! alist (cdr (cdr (scandir directory-name))))
+	     (display alist)
+	     (newline)))))
